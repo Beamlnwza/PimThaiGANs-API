@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import generate
+from routers import generate, view
 
 app = FastAPI()
 
@@ -16,7 +16,9 @@ app.add_middleware(
 
 
 def config_router():
-    app.include_router(generate.router)
+    router_list = [generate, view]
+    for router in router_list:
+        app.include_router(router.router)
 
 
 config_router()
@@ -24,4 +26,4 @@ config_router()
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"info": "Welcome to pimthaigans api", "contact": "github.com/Beamlnwza"}

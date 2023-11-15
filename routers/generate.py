@@ -1,12 +1,12 @@
 from fastapi import APIRouter
 
 router = APIRouter(
-    prefix="/generate",
+    prefix="/g",
     tags=["generate"],
     responses={404: {"description": "Not found"}},
 )
 
 
-@router.get("/")
+@router.get("/info")
 async def root():
-    return {"message": "Hello World 2"}
+    return {"info": "for generate image"}
