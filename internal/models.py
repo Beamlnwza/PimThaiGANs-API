@@ -17,7 +17,7 @@ class Generator(nn.Module):
         latent_dim = 100
 
         self.label_emb = nn.Embedding(n_classes, n_classes)
-        self.IMAGE_SHAPE = IMAGE_SHAPE
+        self.image_shape = (1, 32, 32)
 
         def block(in_feat, out_feat, normalize=True):
             layers = [nn.Linear(in_feat, out_feat)]
@@ -31,7 +31,7 @@ class Generator(nn.Module):
             *block(128, 256),
             *block(256, 512),
             *block(512, 1024),
-            nn.Linear(1024, int(np.prod(self.IMAGE_SHAPE))),
+            nn.Linear(1024, int(np.prod(self.image_shape))),
             nn.Tanh(),
         )
 
@@ -39,55 +39,67 @@ class Generator(nn.Module):
         # Concatenate label embedding and image to produce input
         gen_input = torch.cat((self.label_emb(labels), noise), -1)
         img = self.model(gen_input)
-        img = img.view(img.size(0), *self.IMAGE_SHAPE)
+        img = img.view(img.size(0), *self.image_shape)
         return img
 
 
 MODELS_PATH = os.path.join(os.path.dirname(__file__), "models")
-model_0043 = Generator(n_classes=44)
-model_0043.load_state_dict(
-    torch.load(os.path.join(MODELS_PATH, "0043.tar"), map_location="cpu")
-)
 
-model_4461 = Generator(n_classes=18)
-model_6276 = Generator(n_classes=15)
-model_7787 = Generator(n_classes=11)
+model_configs = [
+    {"name": "0043", "classes": 44},
+    {"name": "4461", "classes": 18},
+    {"name": "6276", "classes": 15},
+    {"name": "7787", "classes": 11},
+]
+
+models = []
+
+for config in model_configs:
+    model = Generator(n_classes=config["classes"])
+    model_path = os.path.join(MODELS_PATH, f"{config['name']}.tar")
+    model.load_state_dict(torch.load(model_path, map_location="cpu"))
+    models.append(model)
 
 
 def generate_image_index(index: int):
-    z = Variable(torch.FloatTensor(np.random.normal(0, 1, (1, 100))))
+    latent_dim = 100
+    z = Variable(torch.FloatTensor(np.random.normal(0, 1, (1, latent_dim * 2))))
 
-    range_index = []
-
-    if index < 43:
-        model = model_0043
-        range_index = range(0, 44)
-    elif index < 61:
-        model = model_4461
-        range_index = range(44, 62)
-    elif index < 76:
-        model = model_6276
-        range_index = range(62, 77)
-    else:
-        model = model_7787
-        range_index = range(77, 88)
+    model, range_index = get_model_and_range(index)
 
     model.eval()
 
     class_labels = range_index.index(index)
     labels = Variable(torch.LongTensor([class_labels]))
 
-    img = model_0043(z, labels)
+    random_z = z[:, :latent_dim]
+    img = model(random_z + np.random.randint(-2, 2), labels)
+
     img_np = img.detach().numpy()
     return img_np
 
 
-if __name__ == "__main__":
-    index = 0
-    generated_image = generate_image_index(index)
-    print(generated_image.shape)
+def get_model_and_range(index):
+    if index <= 43:
+        model, range_index = models[0], range(0, 44)
+    elif index <= 61:
+        model, range_index = models[1], range(44, 62)
+    elif index <= 76:
+        model, range_index = models[2], range(62, 77)
+    else:
+        model, range_index = models[3], range(77, 88)
 
-    import matplotlib.pyplot as plt
+    model.eval()
 
-    plt.imshow(generated_image[0][0], cmap="gray")
-    plt.savefig("test.png")
+    class_labels = range_index.index(index)
+    labels = Variable(torch.LongTensor([class_labels]))
+
+    return model, labels
+
+
+""" if __name__ == "__main__":
+    from image import extract_image
+
+    img = generate_image_index(87)
+    extract_image(img).save("test.png")
+ """
