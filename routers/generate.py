@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from uuid import UUID, uuid4
 
-from libs.type import ImageReturn, GvType
+from libs.type import ImageReturn, GvType, Request
 from libs.models import generate_image_index
 from libs.image import extract_image, image_byte
 
@@ -17,28 +17,28 @@ async def root():
     return {"info": "for generate image"}
 
 
-@router.get("/")
-async def root(uuid: UUID, type: GvType, index: int | None = None) -> ImageReturn:
+@router.post("/")
+async def root(request: Request) -> ImageReturn:
     """
-    Generate an image based on the given UUID and type.
+    Root endpoint for generating images.
 
     Args:
-        uuid (UUID): The UUID of the image.
-        type (GvType): The type of the image.
-        index (int | None, optional): The index of the image. Defaults to None.
+        request (Request): The incoming request object.
 
     Returns:
         ImageReturn: The generated image.
 
     Raises:
-        HTTPException: If the type or UUID is invalid.
+        HTTPException: If the type or uuid is invalid.
     """
     request_id = uuid4()
+    uuid = request.uuid
 
-    match type:
+    match request.type:
         case GvType.all:
             return g_all(uuid, request_id)
         case GvType.index:
+            index = request.index
             return g_index(uuid, request_id, index)
 
     raise HTTPException(status_code=404, detail="Invalid type nor uuid")

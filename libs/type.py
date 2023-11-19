@@ -75,3 +75,9 @@ class GvType(str, Enum):
     index = "index"
     list = "list"
     current = "current"
+
+
+class Request(BaseModel):
+    uuid: UUID
+    type: GvType
+    index: int | None = None
