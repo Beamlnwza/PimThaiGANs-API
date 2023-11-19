@@ -1,5 +1,8 @@
 from fastapi import APIRouter
-from pydantic import UUID4
+from uuid import UUID
+from libs.type import ImageReturn
+from uuid import uuid4
+import json
 
 router = APIRouter(
     prefix="/v",
@@ -13,6 +16,21 @@ async def root():
     return {"info": "for return view image"}
 
 
+@router.get("/status")
+async def root():
+    return {"status": "ok"}
+
+
 @router.get("/")
-async def root(uuid: UUID4):
-    return {"info": "Welcome to pimthaigans api", "contact": "github.com/Beamlnwza"}
+async def root(uuid: UUID) -> ImageReturn:
+    request_id = uuid4()
+
+    return {
+        "user_uuid": uuid,
+        "request_id": request_id,
+        "image_urls": {
+            "0": "https://example.com/image0.png",
+            "1": "https://example.com/image1.png",
+            "2": "https://example.com/image2.png",
+        },
+    }

@@ -95,11 +95,3 @@ def get_model_and_range(index):
     labels = Variable(torch.LongTensor([class_labels]))
 
     return model, labels
-
-
-""" if __name__ == "__main__":
-    from image import extract_image
-
-    img = generate_image_index(87)
-    extract_image(img).save("test.png")
- """
