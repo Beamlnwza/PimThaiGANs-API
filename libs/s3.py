@@ -30,3 +30,15 @@ def s3_resource():
         region_name="sgp1",
     )
     return resource
+
+
+def s3_upload_image(filepath, filename, uuid, bucket_name="pimthaigans"):
+    client = s3_client()
+    client.upload_fileobj(
+        filepath,
+        bucket_name,
+        f"images/{uuid}/{filename}",
+        ExtraArgs={"ACL": "public-read"},
+    )
+
+    return f"https://{bucket_name}.sgp1.digitaloceanspaces.com/images/{uuid}/{filename}"

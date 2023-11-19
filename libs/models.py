@@ -89,9 +89,4 @@ def get_model_and_range(index):
     else:
         model, range_index = models[3], range(77, 88)
 
-    model.eval()
-
-    class_labels = range_index.index(index)
-    labels = Variable(torch.LongTensor([class_labels]))
-
-    return model, labels
+    return model, range_index
