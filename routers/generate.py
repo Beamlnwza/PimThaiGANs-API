@@ -19,6 +19,20 @@ async def root():
 
 @router.get("/")
 async def root(uuid: UUID, type: GvType, index: int | None = None) -> ImageReturn:
+    """
+    Generate an image based on the given UUID and type.
+
+    Args:
+        uuid (UUID): The UUID of the image.
+        type (GvType): The type of the image.
+        index (int | None, optional): The index of the image. Defaults to None.
+
+    Returns:
+        ImageReturn: The generated image.
+
+    Raises:
+        HTTPException: If the type or UUID is invalid.
+    """
     request_id = uuid4()
 
     match type:
@@ -31,6 +45,16 @@ async def root(uuid: UUID, type: GvType, index: int | None = None) -> ImageRetur
 
 
 def g_all(uuid: UUID, request_id: UUID) -> ImageReturn:
+    """
+    Generate all images for the given UUID and request ID.
+
+    Args:
+        uuid (UUID): The UUID of the user.
+        request_id (UUID): The UUID of the request.
+
+    Returns:
+        ImageReturn: A dictionary containing the user UUID, request ID, and image URLs.
+    """
     img_urls = {}
 
     for index in range(0, 88):
@@ -47,6 +71,20 @@ def g_all(uuid: UUID, request_id: UUID) -> ImageReturn:
 
 
 def g_index(uuid: UUID, request_id: UUID, index: int) -> ImageReturn:
+    """
+    Generate and return an image based on the given index.
+
+    Args:
+        uuid (UUID): The UUID of the user.
+        request_id (UUID): The UUID of the request.
+        index (int): The index of the image to generate.
+
+    Returns:
+        ImageReturn: The generated image along with user UUID, request ID, and image URLs.
+
+    Raises:
+        HTTPException: If the index is out of range (not between 0 and 87).
+    """
     if index not in range(0, 88):
         raise HTTPException(status_code=404, detail="Class out of index")
 

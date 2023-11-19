@@ -33,6 +33,18 @@ def s3_resource():
 
 
 def s3_upload_image(filepath, filename, uuid, bucket_name="pimthaigans"):
+    """
+    Uploads an image file to an S3 bucket and returns the public URL of the uploaded image.
+
+    Args:
+        filepath (str): The path to the image file.
+        filename (str): The name of the image file.
+        uuid (str): The UUID associated with the image.
+        bucket_name (str, optional): The name of the S3 bucket. Defaults to "pimthaigans".
+
+    Returns:
+        str: The public URL of the uploaded image.
+    """
     client = s3_client()
     client.upload_fileobj(
         filepath,
