@@ -81,3 +81,10 @@ class Request(BaseModel):
     uuid: UUID
     type: GvType
     index: int | None = None
+
+
+class LeftReturn(BaseModel):
+    user_uuid: UUID = Field(..., example=uuid4())
+    request_id: UUID = Field(..., example=uuid4())
+    index_left: list[int]
+    missing_index: list[int]

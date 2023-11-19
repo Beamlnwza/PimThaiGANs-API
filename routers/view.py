@@ -1,7 +1,7 @@
-from typing import Union
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from uuid import UUID, uuid4
-from libs.type import ImageReturn, GvType
+
+from libs.type import LeftReturn
 from libs.s3 import s3_resource
 
 router = APIRouter(
@@ -16,79 +16,33 @@ async def root():
     return {"info": "for return view image"}
 
 
-@router.get("/status")
-async def root():
-    return {"status": "ok"}
-
-
 @router.get("/")
-async def root(uuid: UUID, type: GvType, index: int | None = None) -> ImageReturn:
+async def root(uuid: UUID) -> LeftReturn:
     """
-    Root function that handles the routing logic based on the given parameters.
+    Retrieves the root information for a given UUID.
 
     Args:
-        uuid (UUID): The UUID parameter.
-        type (GvType): The GvType parameter.
-        index (int | None, optional): The index parameter. Defaults to None.
+        uuid (UUID): The UUID of the user.
 
     Returns:
-        ImageReturn: The result of the routing logic.
-
-    Raises:
-        HTTPException: If the type or uuid is invalid.
+        dict: A dictionary containing the user UUID, request ID, index left, and missing index.
     """
     request_id = uuid4()
 
-    match type:
-        case GvType.all:
-            return v_all(uuid, request_id)
-        case GvType.index:
-            return v_index(uuid, request_id, index)
+    resource = s3_resource()
+    bucket = resource.Bucket("pimthaigans")
+    objects = bucket.objects.filter(Prefix=f"images/{uuid}/")
 
-    raise HTTPException(status_code=404, detail="Invalid type nor uuid")
+    index_left = []
+    for obj in objects:
+        index = obj.key.split("/")[2].split(".")[0]
+        index_left.append(int(index))
 
-
-def v_all(uuid: UUID, request_id: UUID) -> ImageReturn:
-    """
-    Retrieve all images for a given user UUID and request ID.
-
-    Args:
-        uuid (UUID): The UUID of the user.
-        request_id (UUID): The UUID of the request.
-
-    Returns:
-        ImageReturn: A dictionary containing the user UUID, request ID, and image URLs.
-    """
-    return {
-        "user_uuid": uuid,
-        "request_id": request_id,
-        "image_urls": {
-            "0": "https://example.com/image0.png",
-            "1": "https://example.com/image1.png",
-            "2": "https://example.com/image2.png",
-        },
-    }
-
-
-def v_index(uuid: UUID, request_id: UUID, index: int) -> ImageReturn:
-    """
-    Retrieve the image URLs for a given index.
-
-    Args:
-        uuid (UUID): The UUID of the user.
-        request_id (UUID): The UUID of the request.
-        index (int): The index of the image.
-
-    Returns:
-        ImageReturn: The image URLs for the given index.
-    """
-    if index not in range(0, 88):
-        raise HTTPException(status_code=404, detail="Class out of index")
+    missing_index = list(set(range(0, 88)) - set(index_left))
 
     return {
         "user_uuid": uuid,
         "request_id": request_id,
-        "image_urls": {
-            f"{index}": "https://example.com/image0.png",
-        },
+        "index_left": index_left,
+        "missing_index": missing_index,
     }
